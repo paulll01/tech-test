@@ -1,0 +1,827 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Parking API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "Cavu Tech Test"
+        }
+    ],
+    "paths": {
+        "/{carPark}/availability": {
+            "get": {
+                "tags": [
+                    "Availability"
+                ],
+                "summary": "Check car park availability for a date range",
+                "description": "Returns availability information for a given car park and date range.",
+                "operationId": "checkAvailability",
+                "parameters": [
+                    {
+                        "name": "carPark",
+                        "in": "path",
+                        "description": "Car Park uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "c4d11d0a-586c-4150-a5ed-0bd610af9ff9"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "description": "Start date (inclusive). Format: Y-m-d. Must be today or later, and ≤ 'to'.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-09-21"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "description": "End date (inclusive). Format: Y-m-d. Must be ≥ 'from'.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-09-25"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Availability result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CheckAvailabilityResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorBadRequest"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Car park not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorNotFound"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/car-parks/{carPark}/bookings": {
+            "post": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Create a booking for a given car park",
+                "description": "Creates a booking in the given range. Validates overlap and capacity",
+                "operationId": "createBooking",
+                "parameters": [
+                    {
+                        "name": "carPark",
+                        "in": "path",
+                        "description": "Car Park UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "c4d11d0a-586c-4150-a5ed-0bd610af9ff9"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateBookingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Booking created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateBookingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorBadRequest"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Car park not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorNotFound"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Overlap conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorConflict"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/bookings/{booking}": {
+            "patch": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Amend an existing booking",
+                "description": "Update an existing booking (dates, period). Requires proof of ownership (reference + email + vehicle registration)",
+                "operationId": "amendBooking",
+                "parameters": [
+                    {
+                        "name": "booking",
+                        "in": "path",
+                        "description": "Booking UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "c5312b5f-6c55-4a15-9d2c-0a2d2d7c9a2f"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AmendBookingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Booking amended",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BookingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorBadRequest"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (ownership proof failed)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorForbidden"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Booking not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorNotFound"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Date overlap conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorConflict"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/bookings/{booking}/cancel": {
+            "post": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Cancel an existing booking",
+                "description": "Cancels a booking and releases its reserved days. Requires proof of ownership (reference + email + vehicle registration).",
+                "operationId": "cancelBooking",
+                "parameters": [
+                    {
+                        "name": "booking",
+                        "in": "path",
+                        "description": "Booking identifier (route model binding)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "c5312b5f-6c55-4a15-9d2c-0a2d2d7c9a2f"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CancelBookingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Booking cancelled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CancelBookingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorBadRequest"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (ownership proof failed)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorForbidden"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Booking not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorNotFound"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "AmendBookingRequest": {
+                "required": [
+                    "vehicle_reg",
+                    "customer_email",
+                    "unique_reference"
+                ],
+                "properties": {
+                    "from": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-10-01",
+                        "nullable": true
+                    },
+                    "to": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-10-05",
+                        "nullable": true
+                    },
+                    "vehicle_reg": {
+                        "type": "string",
+                        "maxLength": 7,
+                        "example": "KL56NVN"
+                    },
+                    "customer_email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "test@example.com"
+                    },
+                    "unique_reference": {
+                        "type": "string",
+                        "example": "NVN-ABC123"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "from": "2025-10-01",
+                    "to": "2025-10-05",
+                    "vehicle_reg": "KL56NVN",
+                    "customer_email": "test@example.com",
+                    "unique_reference": "NVN-ABC123"
+                }
+            },
+            "AvailabilityDay": {
+                "required": [
+                    "date",
+                    "available",
+                    "price",
+                    "is_weekend",
+                    "price_source"
+                ],
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-09-21"
+                    },
+                    "available": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 50
+                    },
+                    "is_weekend": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "price_source": {
+                        "type": "string",
+                        "example": "season:Summer 2025"
+                    }
+                },
+                "type": "object"
+            },
+            "BookingDayPrice": {
+                "required": [
+                    "date",
+                    "price"
+                ],
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-09-21"
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 35
+                    }
+                },
+                "type": "object"
+            },
+            "BookingResponse": {
+                "required": [
+                    "booking_uuid",
+                    "reference",
+                    "car_park",
+                    "from",
+                    "to",
+                    "days",
+                    "total_price",
+                    "currency",
+                    "status"
+                ],
+                "properties": {
+                    "booking_uuid": {
+                        "type": "string",
+                        "example": "c5312b5f-6c55-4a15-9d2c-0a2d2d7c9a2f"
+                    },
+                    "reference": {
+                        "type": "string",
+                        "example": "NVN-ABC123"
+                    },
+                    "car_park": {
+                        "type": "string",
+                        "example": "T1"
+                    },
+                    "from": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-10-01"
+                    },
+                    "to": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-10-05"
+                    },
+                    "days": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BookingDayPrice"
+                        }
+                    },
+                    "total_price": {
+                        "type": "string",
+                        "example": "150.00"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "GBP"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "pending"
+                    }
+                },
+                "type": "object"
+            },
+            "CancelBookingRequest": {
+                "required": [
+                    "unique_reference",
+                    "customer_email",
+                    "vehicle_reg"
+                ],
+                "properties": {
+                    "unique_reference": {
+                        "type": "string",
+                        "example": "NVN-ABC123"
+                    },
+                    "customer_email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "test@example.com"
+                    },
+                    "vehicle_reg": {
+                        "type": "string",
+                        "maxLength": 16,
+                        "example": "KL56NVN"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "unique_reference": "NVN-ABC123",
+                    "customer_email": "test@example.com",
+                    "vehicle_reg": "KL56NVN"
+                }
+            },
+            "CancelBookingResponse": {
+                "required": [
+                    "booking_uuid",
+                    "reference",
+                    "status",
+                    "cancelled_at"
+                ],
+                "properties": {
+                    "booking_uuid": {
+                        "type": "string",
+                        "example": "c5312b5f-6c55-4a15-9d2c-0a2d2d7c9a2f"
+                    },
+                    "reference": {
+                        "type": "string",
+                        "example": "NVN-ABC123"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "cancelled"
+                    },
+                    "cancelled_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-09-21T14:32:10Z"
+                    }
+                },
+                "type": "object"
+            },
+            "CheckAvailabilityResponse": {
+                "required": [
+                    "car_park",
+                    "capacity",
+                    "days",
+                    "availability",
+                    "total_price",
+                    "currency"
+                ],
+                "properties": {
+                    "car_park": {
+                        "type": "string",
+                        "example": "T1"
+                    },
+                    "capacity": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "days": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AvailabilityDay"
+                        }
+                    },
+                    "availability": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "total_price": {
+                        "type": "string",
+                        "example": "295.00"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "GBP"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "car_park": "T1",
+                    "capacity": 10,
+                    "days": [
+                        {
+                            "date": "2025-09-21",
+                            "available": 10,
+                            "price": 50,
+                            "is_weekend": true,
+                            "price_source": "season:Summer 2025"
+                        },
+                        {
+                            "date": "2025-09-22",
+                            "available": 9,
+                            "price": 35,
+                            "is_weekend": false,
+                            "price_source": "season:Summer 2025"
+                        }
+                    ],
+                    "availability": true,
+                    "total_price": "295.00",
+                    "currency": "GBP"
+                }
+            },
+            "CreateBookingRequest": {
+                "required": [
+                    "from",
+                    "to",
+                    "customer_email",
+                    "vehicle_reg"
+                ],
+                "properties": {
+                    "from": {
+                        "description": "Y-m-d, ≥ today, ≤ 'to'",
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-09-21"
+                    },
+                    "to": {
+                        "description": "Y-m-d, ≥ 'from'",
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-09-25"
+                    },
+                    "customer_email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "test@example.com"
+                    },
+                    "vehicle_reg": {
+                        "type": "string",
+                        "maxLength": 16,
+                        "example": "KL56NVN"
+                    }
+                },
+                "type": "object"
+            },
+            "CreateBookingResponse": {
+                "required": [
+                    "booking_uuid",
+                    "reference",
+                    "car_park",
+                    "from",
+                    "to",
+                    "days",
+                    "total_price",
+                    "currency",
+                    "status"
+                ],
+                "properties": {
+                    "booking_uuid": {
+                        "type": "string",
+                        "example": "c5312b5f-6c55-4a15-9d2c-0a2d2d7c9a2f"
+                    },
+                    "reference": {
+                        "type": "string",
+                        "example": "NVN-ABC123"
+                    },
+                    "car_park": {
+                        "type": "string",
+                        "example": "T1"
+                    },
+                    "from": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-09-21"
+                    },
+                    "to": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-09-25"
+                    },
+                    "days": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BookingDayPrice"
+                        }
+                    },
+                    "total_price": {
+                        "type": "string",
+                        "example": "295.00"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "GBP"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "pending"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorBadRequest": {
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Bad request"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorConflict": {
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Vehicle has overlapping bookings for the given dates."
+                    },
+                    "overlapping_dates": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "example": [
+                            "2025-09-22"
+                        ],
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorForbidden": {
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "You are not allowed to amend this booking."
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorNotFound": {
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Car park not found"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorValidation": {
+                "required": [
+                    "message",
+                    "errors"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "The given data was invalid."
+                    },
+                    "errors": {
+                        "type": "object",
+                        "example": {
+                            "from": [
+                                "The from field must be a valid date.",
+                                "The from field must be a date after or equal to today."
+                            ],
+                            "to": [
+                                "The to field must be a date after or equal to from."
+                            ]
+                        },
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Availability",
+            "description": "Availability"
+        },
+        {
+            "name": "Bookings",
+            "description": "Bookings"
+        }
+    ]
+}
