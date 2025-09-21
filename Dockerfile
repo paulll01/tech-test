@@ -1,7 +1,9 @@
 FROM php:8.4-fpm
 
+WORKDIR /var/www/html
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git unzip pkg-config libonig-dev \
+        git unzip pkg-config libonig-dev libzip-dev \
     && docker-php-ext-install \
         pdo_mysql \
         mbstring \
@@ -9,22 +11,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         bcmath \
     && rm -rf /var/lib/apt/lists/*
 
-
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
-WORKDIR /var/www/html
-
 COPY composer.json composer.lock ./
+RUN composer install --no-interaction --prefer-dist --no-scripts --no-progress || true
 
-RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-progress || true
-
-COPY . ./
+COPY . .
 
 RUN [ -f .env ] || cp .env.example .env \
-    && php artisan key:generate --force
-
-RUN mkdir -p storage bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+  && php artisan key:generate --force
 
 CMD ["php-fpm"]

@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\BookingModel;
+use App\Models\CarParkModel;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,11 +13,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        /** @var \App\Models\CarParkModel $carPark */
+        $carPark = CarParkModel::factory()->create([
+            'name' => 'T1',
+            'capacity' => 10,
+            'default_weekday_price' => 30.00,
+            'default_weekend_price' => 40.00,
         ]);
+
+        $from = now()->addDay()->startOfDay()->toDateString();
+        $to = now()->addDays(5)->startOfDay()->toDateString();
+
+        BookingModel::factory()
+            ->create([
+                'car_park_id' => $carPark->id,
+                'from_date' => $from,
+                'to_date' => $to,
+                'status' => 'confirmed',
+            ]);
     }
 }
