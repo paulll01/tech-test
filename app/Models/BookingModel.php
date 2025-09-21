@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property string $uuid
+ * @property string $unique_reference
  * @property int $car_park_id
  * @property string $customer_email
  * @property string $vehicle_reg
@@ -37,6 +38,7 @@ class BookingModel extends Model
         'to_date',
         'status',
         'total_price',
+        'unique_reference',
     ];
 
     protected $hidden = [

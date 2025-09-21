@@ -7,7 +7,7 @@ use App\Models\CarParkModel;
 use App\Models\PricingSeasonModel;
 use App\ValueObjects\Availability\DateRangeVO;
 
-final class PricingSeasonRepository implements IPricingSeasonRepository
+class PricingSeasonRepository implements IPricingSeasonRepository
 {
     /**
      * @return array<string, SeasonDayPriceDTO>
@@ -17,10 +17,10 @@ final class PricingSeasonRepository implements IPricingSeasonRepository
         $from = $range->from->format('Y-m-d');
         $to = $range->to->format('Y-m-d');
 
-        $overlappingSeasons = PricingSeasonModel::query()
+        $seasons = PricingSeasonModel::query()
             ->where('car_park_id', $carPark->id)
-            ->where(function ($query) use ($from, $to) {
-                $query->whereBetween('start_date', [$from, $to])
+            ->where(function ($q) use ($from, $to) {
+                $q->whereBetween('start_date', [$from, $to])
                     ->orWhereBetween('end_date', [$from, $to])
                     ->orWhere(function ($covers) use ($from, $to) {
                         $covers->where('start_date', '<=', $from)
@@ -28,27 +28,30 @@ final class PricingSeasonRepository implements IPricingSeasonRepository
                     });
             })
             ->orderBy('start_date')
-            ->get();
+            ->get(['name', 'start_date', 'end_date', 'weekday_price', 'weekend_price']);
 
-        if ($overlappingSeasons->isEmpty()) {
+        if ($seasons->isEmpty()) {
             return [];
         }
 
+        // assuming no overlaps between seasons
+        $prepared = $seasons->map(fn ($s) => [
+            'start' => new \DateTimeImmutable($s->start_date),
+            'end' => new \DateTimeImmutable($s->end_date),
+            'dto' => new SeasonDayPriceDTO(
+                seasonName: $s->name,
+                weekdayPrice: (float) $s->weekday_price,
+                weekendPrice: (float) $s->weekend_price,
+            ),
+        ])->all();
+
         $pricesByDate = [];
-
-        foreach ($overlappingSeasons as $season) {
-            $seasonStartDate = new \DateTimeImmutable($season->start_date);
-            $seasonEndDate = new \DateTimeImmutable($season->end_date);
-
-            for ($cursorDate = $seasonStartDate; $cursorDate <= $seasonEndDate; $cursorDate = $cursorDate->modify('+1 day')) {
-                $key = $cursorDate->format('Y-m-d');
-
-                if (! array_key_exists($key, $pricesByDate)) {
-                    $pricesByDate[$key] = new SeasonDayPriceDTO(
-                        seasonName: $season->name,
-                        weekdayPrice: (float) $season->weekday_price,
-                        weekendPrice: (float) $season->weekend_price,
-                    );
+        foreach ($range->days() as $day) {
+            $date = new \DateTimeImmutable($day);
+            foreach ($prepared as $season) {
+                if ($date >= $season['start'] && $date <= $season['end']) {
+                    $pricesByDate[$day] = $season['dto'];
+                    break;
                 }
             }
         }

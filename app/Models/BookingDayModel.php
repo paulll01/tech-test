@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $booking_id
+ * @property int $car_park_id
+ * @property string|\Illuminate\Support\Carbon $date
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
+ * @property-read BookingModel $booking
+ * @property-read CarParkModel $carPark
+ */
 class BookingDayModel extends Model
 {
     use HasFactory;

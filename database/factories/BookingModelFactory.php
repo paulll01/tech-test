@@ -28,6 +28,7 @@ class BookingModelFactory extends Factory
         return [
             'uuid' => (string) Str::uuid(),
             'car_park_id' => CarParkModel::factory(),
+            'unique_reference' => substr(strtoupper((string) Str::ulid()), -6),
             'customer_email' => $this->faker->safeEmail(),
             'vehicle_reg' => strtoupper($this->faker->bothify('??##???')),
             'from_date' => $from->format('Y-m-d'),

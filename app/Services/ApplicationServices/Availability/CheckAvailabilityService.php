@@ -9,7 +9,7 @@ use App\Services\BookingDay\IBookingDayService;
 use App\Services\Pricing\IQuotePricingService;
 use App\ValueObjects\Availability\DateRangeVO;
 
-final class CheckAvailabilityService implements ICheckAvailabilityService
+class CheckAvailabilityService implements ICheckAvailabilityService
 {
     public function __construct(
         private IBookingDayService $bookingDayService,

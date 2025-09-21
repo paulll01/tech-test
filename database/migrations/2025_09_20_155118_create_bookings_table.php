@@ -16,6 +16,7 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->foreignId('car_park_id')->constrained('car_parks', 'id')->cascadeOnDelete();
             $table->string('customer_email')->index();
+            $table->string('unique_reference', 20)->unique();
             $table->string('vehicle_reg')->index();
             $table->date('from_date')->index();
             $table->date('to_date')->index();

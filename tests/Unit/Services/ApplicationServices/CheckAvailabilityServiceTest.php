@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Services;
+namespace Tests\Unit\Services\ApplicationServices;
 
 use App\DTO\Availability\CheckAvailabilityDTO;
 use App\DTO\Availability\CheckAvailabilityResponseDTO;
@@ -22,7 +22,6 @@ class CheckAvailabilityServiceTest extends TestCase
 
     public function test_handle_builds_days_and_availability_and_total_price_from_dependencies(): void
     {
-        // Mocks
         $bookingDayServiceMock = Mockery::mock(IBookingDayService::class);
         $pricingServiceMock = Mockery::mock(IQuotePricingService::class);
 

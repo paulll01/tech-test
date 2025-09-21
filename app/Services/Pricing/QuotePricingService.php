@@ -7,7 +7,7 @@ use App\Models\CarParkModel;
 use App\Repositories\PricingSeason\IPricingSeasonRepository;
 use App\ValueObjects\Availability\DateRangeVO;
 
-final class QuotePricingService implements IQuotePricingService
+class QuotePricingService implements IQuotePricingService
 {
     public function __construct(
         private readonly IPricingSeasonRepository $seasons,
